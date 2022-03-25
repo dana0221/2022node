@@ -1,8 +1,15 @@
 const http = require('http')
+const fs = require('fs')
 const app = http.createServer(function(req, res){
-    res.writeHead(200)
-    console.log(__dirname + req.url)
-    res.end('Hello World')
-})
+    let url = req.url
 
-app.listen(3000)
+    if(url === '/')
+        url = '/index.html'
+    if(url === '/favicon.ico')
+        return res.writeHead(404)
+
+    res.writeHead(200)
+    res.end(fs.readFileSync(__dirname + url))
+});
+
+app.listen(3333)
