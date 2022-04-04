@@ -2,6 +2,25 @@ const http = require('http')
 const fs = require('fs')
 const url = require('url')
 
+// ${} 안에 들어갈 변수가 없기 때문에 매개변수로 넘겨줌
+function templateHTML(title, list, body){
+    return`
+        <!doctype html>
+        <html lang="ko">
+            <head>
+                <title>WEB1 - ${title}</title>
+                <meta charset="utf-8">
+            </head>
+            <body>
+                <h1><a href="/">WEB</a></h1>
+                ${list}
+                <h2>${title}</h2>
+                <p>${body}</p>
+            </body>
+        </html>
+    `
+}
+
 const app = http.createServer(function (request, response) {
     const _url = request.url
     const queryData = url.parse(_url, true).query
@@ -17,21 +36,9 @@ const app = http.createServer(function (request, response) {
                     list += `<li> <a href="/?id=${data[i]}"> ${data[i]} </a></li>`;
                 }
                 list += '</ul>';
-                const template = `
-                    <!doctype html>
-                    <html lang="ko">
-                        <head>
-                            <title>WEB1 - ${title}</title>
-                            <meta charset="utf-8">
-                        </head>
-                        <body>
-                            <h1><a href="/">WEB</a></h1>
-                            ${list}
-                            <h2>${title}</h2>
-                            <p>${description}</p>
-                        </body>
-                    </html>
-`
+
+                const template = templateHTML(title, list, description)
+
                 response.writeHead(200)
                 response.end(template)
             });
@@ -47,21 +54,8 @@ const app = http.createServer(function (request, response) {
 
                 fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
                     const title = queryData.id
-                    const template = `
-                        <!doctype html>
-                        <html lang="ko">
-                            <head>
-                                <title>WEB1 - ${title}</title>
-                                <meta charset="utf-8">
-                            </head>
-                            <body>
-                                <h1><a href="/">WEB</a></h1>
-                                ${list}
-                                <h2>${title}</h2>
-                                <p>${description}</p>
-                            </body>
-                        </html>
-    `
+                    const template = templateHTML(title, list, description)
+
                     response.writeHead(200)
                     response.end(template)
                 })
