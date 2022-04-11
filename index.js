@@ -16,7 +16,7 @@ function templateList(fileList){
 }
 
 // ${} 안에 들어갈 변수가 없기 때문에 매개변수로 넘겨줌
-function templateHTML(title, list, body){
+function templateHTML(title, list, body, control){
     return`
         <!doctype html>
         <html lang="ko">
@@ -28,7 +28,7 @@ function templateHTML(title, list, body){
                 <h1><a href="/">WEB</a></h1>
                 ${list}
                 <h2>${title}</h2>
-                <a href="/create">create</a>
+                ${control}
                 <p>${body}</p>
             </body>
         </html>
@@ -46,7 +46,9 @@ const app = http.createServer(function (request, response) {
 
             fs.readdir('data/', function (err,data){
                 const list = templateList(data)
-                const template = templateHTML(title, list, description)
+
+                // 메인화면에서는 create(생성)만 가능
+                const template = templateHTML(title, list, description, `<a href="create">create</a>`)
 
                 response.writeHead(200)
                 response.end(template)
@@ -58,7 +60,9 @@ const app = http.createServer(function (request, response) {
                 fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
                     const title = queryData.id
                     const list = templateList(data)
-                    const template = templateHTML(title, list, description)
+
+                    // 특정 게시글을 읽고 있을 때는 create(생성)와 update(수정)를 보여줌
+                    const template = templateHTML(title, list, description, `<a href="create">create</a> <a href="/update?id=${title}">update</a>`)
 
                     response.writeHead(200)
                     response.end(template)
@@ -80,6 +84,7 @@ const app = http.createServer(function (request, response) {
                     <p>
                         <input type="submit"/>
                     </p>
+                <!-- 글생성 중에는 create, update 안 보이게 -->
                 </form>
             `)
 
