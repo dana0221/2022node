@@ -109,9 +109,6 @@ const app = http.createServer(function (request, response) {
                 response.end()
             })
         })
-
-        response.writeHead(200)
-        response.end('success')
     } else if(pathname === '/create'){
         fs.readdir('data/', function(err, data){
             const title = 'Web - create'
@@ -163,6 +160,27 @@ const app = http.createServer(function (request, response) {
             })
         })
 
+    } else if(pathname === '/update_process'){
+        // 넘겨 받은 데이터를 문자 형태로 축적
+        let body = ''
+        request.on('data', function(data){
+            body += body += data
+        })
+
+        request.on('end', function(){
+            const post = qs.parse(body)
+            const id = post.id      // 바꾸기 전 파일이름 : 바꾸기 전 게시물 제목
+            const title = post.title;   // 바꾸기 후 이후 파일이름 : 바꾸기 후 게시물 제목
+            const description = post.description    // 파일 내용
+
+            fs.rename(`data/${id}`, `data/${title}`, function(err){
+                fs.writeFile(`data/${title}`, description, 'utf-8', function(err){
+                    response.writeHead(302, {location:`/?id=${title}`})
+                    response.end()
+                })
+            })
+
+        })
     } else {
         response.writeHead(404)
         response.end('Not found')
