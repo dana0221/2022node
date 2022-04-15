@@ -112,6 +112,57 @@ const app = http.createServer(function (request, response) {
 
         response.writeHead(200)
         response.end('success')
+    } else if(pathname === '/create'){
+        fs.readdir('data/', function(err, data){
+            const title = 'Web - create'
+            const list = templateList(data)
+            const template = templateHTML(title, list, `
+                <form action = "create_process" method = "post">
+                    <p>
+                        <input type="text" name="title" placeholder="title"/>
+                    </p>
+                    <p>
+                        <textarea name="description" placeholder="description"></textarea>
+                    </p>
+                    <p>
+                        <input type="submit"/>
+                    </p>
+                <!-- 글생성 중에는 create, update 안 보이게 -->
+                </form>
+            `)
+
+            response.writeHead(200)
+            response.end(template)
+        })
+
+    } else if(pathname === '/update'){
+        // data : 실제 파일리스트의 문자열 배열(파일이름 = 게시물 제목)
+        fs.readdir('data/', function(err, data){
+            // description : 파일 안의 내용물(게시물의 내용물
+            fs.readFile(`data/${queryData.id}`, 'utf-8', function(err, description){
+                const title = queryData.id
+                const list = templateList(data)
+                const template = templateHTML(title, list, `
+                    <form action = "update_process" method = "post">
+                        <input type="hidden" name="id" value="${title}">
+                        <p>
+                            <input type="text" name="title" placeholder="title" value="${title}"/>
+                        </p>
+                        <p>
+                            <textarea name="description" placeholder="description">${description}</textarea>
+                        </p>
+                        <p>
+                            <input type="submit"/>
+                        </p>
+                    <!-- 글생성 중에는 create, update 안 보이게 -->
+                    </form>
+                `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`)
+
+                response.writeHead(200)
+                response.end(template)
+            })
+        })
+
     } else {
         response.writeHead(404)
         response.end('Not found')
