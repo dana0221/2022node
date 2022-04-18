@@ -62,7 +62,13 @@ const app = http.createServer(function (request, response) {
                     const list = templateList(data)
 
                     // 특정 게시글을 읽고 있을 때는 create(생성)와 update(수정)를 보여줌
-                    const template = templateHTML(title, list, description, `<a href="create">create</a> <a href="/update?id=${title}">update</a>`)
+                    const template = templateHTML(title, list, description, `
+                        <a href="create">create</a> <a href="/update?id=${title}">update</a>
+                        <form action="delete_process" method="post">
+                            <input type="hidden" name="id" value="${title}">
+                            <input type="submit" value="delete">
+                        </form>
+                    `)
 
                     response.writeHead(200)
                     response.end(template)
@@ -180,6 +186,23 @@ const app = http.createServer(function (request, response) {
                 })
             })
 
+        })
+    }
+    else if(pathname === '/delete_process'){
+        // 넘겨 받은 데이터를 문자 형태로 축적
+        let body = ''
+        request.on('data', function(data){
+            body += body += data
+        })
+
+        request.on('end', function(){
+            const post = qs.parse(body)
+            const id = post.id      // 바꾸기 전 파일이름 : 바꾸기 전 게시물 제목
+
+            fs.unlink(`data/${id}`, function (err){
+                response.writeHead(302, {location:'/'})
+                response.end()
+            })
         })
     } else {
         response.writeHead(404)
