@@ -3,36 +3,36 @@ const fs = require('fs')
 const url = require('url')
 const qs = require('querystring')
 
-function templateList(fileList){
-    let list = '<ul>';
+const template = {
+    HTML: function(title, list, body, control){
+         return`
+            <!doctype html>
+            <html lang="ko">
+                <head>
+                    <title>WEB1 - ${title}</title>
+                    <meta charset="utf-8">
+                </head>
+                <body>
+                    <h1><a href="/">WEB</a></h1>
+                    ${list}
+                    <h2>${title}</h2>
+                    ${control}
+                    <p>${body}</p>
+                </body>
+            </html>
+        `
+    },
+    List: function(filelist){
+        let list = '<ul>'
 
-    for(let i = 0; i < fileList.length; i++){
-        list += `<li> <a href="/?id=${fileList[i]}"> ${fileList[i]} </a></li>`
+        for(let i = 0; i < filelist.length; i++){
+            list += `<li> <a href="/?id${filelist[i]}">${filelist[i]}</a></li>`
+        }
+
+        list += '</ul>'
+
+        return list
     }
-
-    list += '</ul>'
-
-    return list
-}
-
-// ${} 안에 들어갈 변수가 없기 때문에 매개변수로 넘겨줌
-function templateHTML(title, list, body, control){
-    return`
-        <!doctype html>
-        <html lang="ko">
-            <head>
-                <title>WEB1 - ${title}</title>
-                <meta charset="utf-8">
-            </head>
-            <body>
-                <h1><a href="/">WEB</a></h1>
-                ${list}
-                <h2>${title}</h2>
-                ${control}
-                <p>${body}</p>
-            </body>
-        </html>
-    `
 }
 
 const app = http.createServer(function (request, response) {
@@ -45,13 +45,13 @@ const app = http.createServer(function (request, response) {
             const description = 'Hello, Node.js'
 
             fs.readdir('data/', function (err,data){
-                const list = templateList(data)
+                const list = template.List(data)
 
                 // 메인화면에서는 create(생성)만 가능
-                const template = templateHTML(title, list, description, `<a href="create">create</a>`)
+                const html = template.HTML(title, list, description, `<a href="create">create</a>`)
 
                 response.writeHead(200)
-                response.end(template)
+                response.end(html)
             })
 
 
@@ -59,10 +59,10 @@ const app = http.createServer(function (request, response) {
             fs.readdir('data/', function (err, data){
                 fs.readFile(`data/${queryData.id}`, 'utf8', function (err, description) {
                     const title = queryData.id
-                    const list = templateList(data)
+                    const list = template.List(data)
 
                     // 특정 게시글을 읽고 있을 때는 create(생성)와 update(수정)를 보여줌
-                    const template = templateHTML(title, list, description, `
+                    const html = template.HTML(title, list, description, `
                         <a href="create">create</a> <a href="/update?id=${title}">update</a>
                         <form action="delete_process" method="post">
                             <input type="hidden" name="id" value="${title}">
@@ -71,15 +71,15 @@ const app = http.createServer(function (request, response) {
                     `)
 
                     response.writeHead(200)
-                    response.end(template)
+                    response.end(html)
                 })
             })
         }
     } else if(pathname === '/create'){
         fs.readdir('data/', function(err, data){
             const title = 'Web - create'
-            const list = templateList(data)
-            const template = templateHTML(title, list, `
+            const list = template.List(data)
+            const html = template.HTML(title, list, `
                 <form action = "create_process" method = "post">
                     <p>
                         <input type="text" name="title" placeholder="title"/>
@@ -95,7 +95,7 @@ const app = http.createServer(function (request, response) {
             `)
 
             response.writeHead(200)
-            response.end(template)
+            response.end(html)
         })
 
     } else if(pathname === '/create_process'){
@@ -118,8 +118,8 @@ const app = http.createServer(function (request, response) {
     } else if(pathname === '/create'){
         fs.readdir('data/', function(err, data){
             const title = 'Web - create'
-            const list = templateList(data)
-            const template = templateHTML(title, list, `
+            const list = template.List(data)
+            const html = template.HTML(title, list, `
                 <form action = "create_process" method = "post">
                     <p>
                         <input type="text" name="title" placeholder="title"/>
@@ -135,7 +135,7 @@ const app = http.createServer(function (request, response) {
             `)
 
             response.writeHead(200)
-            response.end(template)
+            response.end(html)
         })
 
     } else if(pathname === '/update'){
@@ -144,8 +144,8 @@ const app = http.createServer(function (request, response) {
             // description : 파일 안의 내용물(게시물의 내용물
             fs.readFile(`data/${queryData.id}`, 'utf-8', function(err, description){
                 const title = queryData.id
-                const list = templateList(data)
-                const template = templateHTML(title, list, `
+                const list = template.List(data)
+                const html = template.HTML(title, list, `
                     <form action = "update_process" method = "post">
                         <input type="hidden" name="id" value="${title}">
                         <p>
@@ -162,7 +162,7 @@ const app = http.createServer(function (request, response) {
                 `, `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`)
 
                 response.writeHead(200)
-                response.end(template)
+                response.end(html)
             })
         })
 
