@@ -2,7 +2,10 @@ const express = require('express');
 const app = express();
 const template = require('./lib/template.js');
 const fs = require('fs');
-const qs = require("querystring");
+// const qs = require("querystring");
+// const bodyParser = require('body-parser')
+
+app.use(express.urlencoded({extended:false}))
 
 app.get('/', function (req, res) {
     fs.readdir('./data', function(err, filelist){
@@ -57,18 +60,15 @@ app.get('/create', function (req, res){
 });
 
 app.post('/create_process', function(req, res){
-  let body = '';
-  req.on('data', function (data) {
-    body = body + data;
-  });
-  req.on('end', function () {
-    const post = qs.parse(body);
-    const title = post.title;
-    const description = post.description;
+    const reqBody = req.body;
+    const title = reqBody.title;
+    const description = reqBody.description;
+
     fs.writeFile(`data/${title}`, description, 'utf-8', function (err) {
       res.redirect(`/page/${title}`);
     });
-  });
+
+
 });
 
 app.get('/update/:pageId', function(req, res){
@@ -98,35 +98,24 @@ app.get('/update/:pageId', function(req, res){
 });
 
 app.post('/update_process', function (req, res) {
-  let body = '';
-  req.on('data', function (data) {
-    body = body + data;
-  });
-  req.on('end', function () {
-    const post = qs.parse(body);
-    const id = post.id;
-    const title = post.title;
-    const description = post.description;
+    const reqBody = req.body;
+    const id = reqBody.id;
+    const title = reqBody.title;
+    const description = reqBody.description;
+
     fs.rename(`data/${id}`, `data/${title}`, function (error) {
       fs.writeFile(`data/${title}`, description, 'utf8', function (err) {
         res.redirect(`/page/${title}`);
       });
     });
-  });
 });
 
 app.post('/delete_process', function(req, res){
-  let body = '';
-  req.on('data', function (data) {
-    body = body + data;
-  });
-  req.on('end', function () {
-    const post = qs.parse(body);
-    const id = post.id;
+    const reqBody = req.body;
+    const id = reqBody.id;
     fs.unlink(`data/${id}`, function (error) {
       res.redirect(`/`);
     });
-  });
 });
 
 app.listen(4444);
